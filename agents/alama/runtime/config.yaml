@@ -1,0 +1,23 @@
+# Alama Configuration
+# ===================
+
+# LLM Settings
+model: llama3:8b
+fallback_model: llama3:8b
+host: localhost
+port: 11434
+context_length: 8192
+
+# Generation Settings
+temperature: 0.3  # Lower for consistent analysis
+max_tokens: 4096
+
+# Output Settings
+output_format: markdown
+log_requests: true
+
+# Paths
+prompts_dir: ../prompts
+gitkeeper_dir: ../gitkeeper
+reports_dir: ../reports
+logs_dir: ../logs

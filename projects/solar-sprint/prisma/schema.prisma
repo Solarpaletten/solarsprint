@@ -1,0 +1,67 @@
+// Solar Sprint MVP v0.1
+// Multi-tenant Task Management System
+// Domain Skeleton - NO migrations, NO seed
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// MULTI-TENANT CORE
+// =============================================================================
+
+/// Tenant - top-level isolation boundary
+/// Each tenant has their own projects and users
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  projects Project[]
+  users    User[]
+
+  @@map("tenants")
+}
+
+/// Project - belongs to a Tenant
+/// Contains tasks (future: Task model)
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Multi-tenant relation
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("projects")
+}
+
+/// User - belongs to a Tenant
+/// Will have roles in future (OWNER, ADMIN, MEMBER)
+model User {
+  id        String   @id @default(cuid())
+  email     String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  passwordHash String
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@map("users")
+}

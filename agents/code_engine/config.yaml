@@ -1,0 +1,23 @@
+models:
+  local:
+    default:
+      name: "qwen2.5-coder:14b"
+      endpoint: "http://localhost:11434"
+      max_tokens: 8192
+      temperature: 0.1
+
+routing:
+  local_threshold_lines: 200
+  local_threshold_files: 1
+  prefer_local: true
+
+validation:
+  typescript: true
+  eslint: true
+  prettier: true
+  tests: false  # Enable when test framework ready
+
+output:
+  format: "diff"  # diff | patch | full
+  commit_message: true
+  pr_description: false
