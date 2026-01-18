@@ -10,9 +10,7 @@ export async function GET(
     const { tenantId } = await requireTenant(request);
 
     const project = await prisma.project.findUnique({
-      where: {
-        id: params.id,
-      },
+      where: { id: params.id },
     });
 
     if (!project) {
@@ -29,7 +27,10 @@ export async function GET(
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const { tenantId } = await requireTenant(request);
     const projectId = params.id;
@@ -57,18 +58,21 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   }
 }
 
-export async function PATCH(request: NextRequest, context: { params: { id: string } }) {
-  const { userId, tenantId } = await requireTenant(request);
-  const projectId = context.params.id;
-  const body = await request.json();
-
-  if (!body.name && !body.description) {
-    return NextResponse.json({ error: 'No fields provided' }, { status: 400 });
-  }
-
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
+    const { tenantId } = await requireTenant(request);
+    const projectId = params.id;
+    const body = await request.json();
+
+    if (!body.name && !body.description) {
+      return NextResponse.json({ error: 'No fields provided' }, { status: 400 });
+    }
+
     const project = await prisma.project.findUnique({
-      where: { id: projectId, tenantId },
+      where: { id: projectId },
     });
 
     if (!project) {
@@ -81,12 +85,15 @@ export async function PATCH(request: NextRequest, context: { params: { id: strin
 
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
-      data: body,
+      data: {
+        ...(body.name && { name: body.name }),
+        ...(body.description !== undefined && { description: body.description }),
+      },
     });
 
-    return NextResponse.json(updatedProject);
+    return NextResponse.json(updatedProject, { status: 200 });
   } catch (error) {
-    console.error('PATCH Project Error:', error);
+    console.error('Error updating project:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function GET(req: NextRequest) {
+type HealthResponse = {
+  status: 'ok';
+  service: string;
+  timestamp: string;
+  db: 'ok' | 'error';
+};
+
+export async function GET(request: NextRequest) {
   const timestamp = new Date().toISOString();
   let dbStatus: 'ok' | 'error' = 'error';
 
@@ -9,13 +16,15 @@ export async function GET(req: NextRequest) {
     await prisma.$queryRaw`SELECT 1`;
     dbStatus = 'ok';
   } catch (e) {
-    // Handle DB error explicitly
+    // DB unreachable, keep dbStatus as 'error'
   }
 
-  return NextResponse.json({
+  const response: HealthResponse = {
     status: 'ok',
     service: 'solar-sprint',
     timestamp,
     db: dbStatus,
-  });
+  };
+
+  return NextResponse.json(response);
 }

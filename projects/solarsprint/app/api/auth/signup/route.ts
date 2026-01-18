@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth/password';
 
-
 export async function POST(request: NextRequest) {
   const body = await request.json();
 
-  const { email, password, tenantName } = body;
-
-  if (!email || !password || !tenantName) {
+  if (!body.email || !body.password || !body.tenantName) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
@@ -16,29 +13,32 @@ export async function POST(request: NextRequest) {
     // Create new Tenant
     const tenant = await prisma.tenant.create({
       data: {
-        name: tenantName,
+        name: body.tenantName,
       },
     });
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    // Hash password using hashPassword() utility
+    const hashedPassword = await hashPassword(body.password);
 
     // Create first User linked to Tenant
     const user = await prisma.user.create({
       data: {
-        email,
+        email: body.email,
         passwordHash: hashedPassword,
         tenantId: tenant.id,
       },
     });
 
-    return NextResponse.json({
-      userId: user.id,
-      email: user.email,
-      tenantId: tenant.id,
-    });
+    return NextResponse.json(
+      {
+        userId: user.id,
+        email: user.email,
+        tenantId: user.tenantId,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Signup error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
-}
+} 
