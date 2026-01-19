@@ -1,57 +1,3 @@
-// PROMPT_FRONTEND_01_F.md
-// PURPOSE: Implement Dashboard Home Page with authenticated API calls
-// VERSION: 2.0 — Fixed: send x-user-id header for authentication
-
-ROLE: SENIOR FRONTEND ENGINEER
-
-PROJECT CONTEXT:
-Project: Solar Sprint
-Stack: Next.js 14 (App Router), TypeScript, React 18, Tailwind CSS
-
-TARGET FILE: app/dashboard/page.tsx
-
-NOTE: This file is in app/dashboard/ (NOT app/(dashboard)/)
-
-TASK:
-Create Dashboard Home Page with stats and recent projects.
-
-AUTHENTICATION:
-All API calls MUST include x-user-id header from localStorage!
-```typescript
-const userId = localStorage.getItem('userId');
-headers: { 'x-user-id': userId || '' }
-```
-
-REQUIRED TYPE DEFINITIONS:
-```typescript
-type Project = {
-  id: string;
-  name: string;
-  description: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type DashboardState = {
-  projects: Project[];
-  isLoading: boolean;
-  error: string | null;
-};
-```
-
-FUNCTIONAL REQUIREMENTS:
-1. 'use client' directive
-2. Import useState, useEffect from 'react'
-3. Import Link from 'next/link'
-4. useEffect to fetch projects on mount
-5. GET /api/projects WITH x-user-id header
-6. Stats cards: Total Projects, Active Projects, Completed Tasks (placeholder 0)
-7. Recent projects section (last 3)
-8. Loading / Error / Empty states
-9. "New Project" button → link to /dashboard/projects
-
-COMPLETE CODE STRUCTURE:
-```typescript
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -174,10 +120,4 @@ export default function DashboardPage() {
     </div>
   );
 }
-```
 
-OUTPUT RULES:
-- OUTPUT CODE ONLY
-- NO markdown
-- NO triple backticks
-- Valid TypeScript/TSX only

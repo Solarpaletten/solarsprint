@@ -1,3 +1,66 @@
+// PROMPT_FRONTEND_01_G.md
+// PURPOSE: Implement Projects List Page with authenticated API calls
+// VERSION: 2.0 — Fixed: send x-user-id header for authentication
+
+ROLE: SENIOR FRONTEND ENGINEER
+
+PROJECT CONTEXT:
+Project: Solar Sprint
+Stack: Next.js 14 (App Router), TypeScript, React 18, Tailwind CSS
+
+TARGET FILE: app/dashboard/projects/page.tsx
+
+NOTE: This file is in app/dashboard/projects/ (NOT app/(dashboard)/projects/)
+
+AUTHENTICATION:
+All API calls MUST include x-user-id header from localStorage!
+
+REQUIRED TYPE DEFINITIONS:
+```typescript
+type Project = {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type PageState = {
+  projects: Project[];
+  isLoading: boolean;
+  error: string | null;
+};
+
+type CreateFormState = {
+  isOpen: boolean;
+  name: string;
+  description: string;
+  isSubmitting: boolean;
+  error: string | null;
+};
+```
+
+FUNCTIONAL REQUIREMENTS:
+1. 'use client' directive
+2. Import useState, useEffect from 'react'
+3. Import Link from 'next/link'
+4. Fetch projects on mount with x-user-id header
+5. Create project form (inline, toggle open/close)
+6. Delete project with confirmation
+7. Grid layout (responsive 1/2/3 columns)
+8. All API calls include x-user-id header
+
+API CALLS PATTERN:
+```typescript
+const userId = localStorage.getItem('userId');
+const headers = {
+  'Content-Type': 'application/json',
+  'x-user-id': userId || '',
+};
+```
+
+COMPLETE CODE STRUCTURE:
+```typescript
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -40,10 +103,22 @@ export default function ProjectsPage() {
     error: null,
   });
 
+  const getAuthHeaders = () => {
+    const userId = localStorage.getItem('userId');
+    return {
+      'Content-Type': 'application/json',
+      'x-user-id': userId || '',
+    };
+  };
+
   const fetchProjects = async () => {
     try {
-      const response = await fetch('/api/projects');
+      const response = await fetch('/api/projects', {
+        headers: getAuthHeaders(),
+      });
+
       if (!response.ok) throw new Error('Failed to fetch projects');
+
       const projects = await response.json();
       setState({ projects, isLoading: false, error: null });
     } catch (error) {
@@ -68,10 +143,10 @@ export default function ProjectsPage() {
     try {
       const response = await fetch('/api/projects', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           name: form.name,
-          description: form.description || undefined,
+          description: form.description || null,
         }),
       });
 
@@ -87,6 +162,7 @@ export default function ProjectsPage() {
         isSubmitting: false,
         error: null,
       });
+
       fetchProjects();
     } catch (error) {
       setForm((prev) => ({
@@ -97,28 +173,37 @@ export default function ProjectsPage() {
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!window.confirm(`Delete project "${name}"?`)) return;
+  const handleDelete = async (project: Project) => {
+    if (!window.confirm(`Delete "${project.name}"? This cannot be undone.`)) return;
 
     try {
-      const response = await fetch(`/api/projects/${id}`, {
+      const response = await fetch(`/api/projects/${project.id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       });
 
       if (!response.ok) throw new Error('Failed to delete project');
+
       fetchProjects();
     } catch (error) {
       alert('Failed to delete project');
     }
   };
 
+  if (state.isLoading) {
+    return (
+      <div className="p-8">
+        <div className="text-gray-500">Loading projects...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
         <button
-          onClick={() => setForm((prev) => ({ ...prev, isOpen: true }))}
+          onClick={() => setForm((prev) => ({ ...prev, isOpen: !prev.isOpen }))}
           className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
         >
           + New Project
@@ -127,7 +212,7 @@ export default function ProjectsPage() {
 
       {/* Create Form */}
       {form.isOpen && (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Create New Project</h2>
           
           {form.error && (
@@ -160,7 +245,7 @@ export default function ProjectsPage() {
                 value={form.description}
                 onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Project description (optional)"
+                placeholder="Project description..."
               />
             </div>
 
@@ -174,7 +259,7 @@ export default function ProjectsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setForm((prev) => ({ ...prev, isOpen: false, name: '', description: '', error: null }))}
+                onClick={() => setForm((prev) => ({ ...prev, isOpen: false }))}
                 className="px-4 py-2 text-gray-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
               >
                 Cancel
@@ -184,53 +269,41 @@ export default function ProjectsPage() {
         </div>
       )}
 
-      {/* Projects List */}
-      {state.isLoading ? (
-        <div className="text-gray-500">Loading projects...</div>
-      ) : state.error ? (
-        <div className="text-red-600">{state.error}</div>
-      ) : state.projects.length === 0 ? (
-        <div className="bg-white p-8 rounded-xl border border-gray-200 text-center">
-          <p className="text-gray-500 mb-4">No projects yet</p>
-          <button
-            onClick={() => setForm((prev) => ({ ...prev, isOpen: true }))}
-            className="text-blue-600 hover:underline font-medium"
-          >
-            Create your first project
-          </button>
-        </div>
+      {/* Error */}
+      {state.error && (
+        <p className="text-red-600 mb-4">{state.error}</p>
+      )}
+
+      {/* Projects Grid */}
+      {state.projects.length === 0 ? (
+        <p className="text-gray-500">No projects yet. Create your first project!</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {state.projects.map((project) => (
             <div
               key={project.id}
-              className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+              className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-start mb-2">
                 <Link
                   href={`/dashboard/projects/${project.id}`}
-                  className="text-lg font-semibold text-gray-900 hover:text-blue-600"
+                  className="font-semibold text-gray-900 hover:text-blue-600"
                 >
                   {project.name}
                 </Link>
                 <button
-                  onClick={() => handleDelete(project.id, project.name)}
-                  className="text-red-600 hover:text-red-800 text-sm"
-                  title="Delete project"
+                  onClick={() => handleDelete(project)}
+                  className="text-red-500 hover:text-red-700 text-sm"
                 >
                   🗑️
                 </button>
               </div>
-              
               {project.description && (
-                <p className="text-sm text-gray-500 line-clamp-2 mb-3">
-                  {project.description}
-                </p>
+                <p className="text-gray-500 text-sm mb-3">{project.description}</p>
               )}
-
-              <div className="text-xs text-gray-400">
-                Created {new Date(project.createdAt).toLocaleDateString()}
-              </div>
+              <p className="text-gray-400 text-xs">
+                Created: {new Date(project.createdAt).toLocaleDateString()}
+              </p>
             </div>
           ))}
         </div>
@@ -238,4 +311,10 @@ export default function ProjectsPage() {
     </div>
   );
 }
+```
 
+OUTPUT RULES:
+- OUTPUT CODE ONLY
+- NO markdown
+- NO triple backticks
+- Valid TypeScript/TSX only

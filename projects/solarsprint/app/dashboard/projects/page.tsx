@@ -1,66 +1,3 @@
-// PROMPT_FRONTEND_01_G.md
-// PURPOSE: Implement Projects List Page with authenticated API calls
-// VERSION: 2.0 — Fixed: send x-user-id header for authentication
-
-ROLE: SENIOR FRONTEND ENGINEER
-
-PROJECT CONTEXT:
-Project: Solar Sprint
-Stack: Next.js 14 (App Router), TypeScript, React 18, Tailwind CSS
-
-TARGET FILE: app/dashboard/projects/page.tsx
-
-NOTE: This file is in app/dashboard/projects/ (NOT app/(dashboard)/projects/)
-
-AUTHENTICATION:
-All API calls MUST include x-user-id header from localStorage!
-
-REQUIRED TYPE DEFINITIONS:
-```typescript
-type Project = {
-  id: string;
-  name: string;
-  description: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type PageState = {
-  projects: Project[];
-  isLoading: boolean;
-  error: string | null;
-};
-
-type CreateFormState = {
-  isOpen: boolean;
-  name: string;
-  description: string;
-  isSubmitting: boolean;
-  error: string | null;
-};
-```
-
-FUNCTIONAL REQUIREMENTS:
-1. 'use client' directive
-2. Import useState, useEffect from 'react'
-3. Import Link from 'next/link'
-4. Fetch projects on mount with x-user-id header
-5. Create project form (inline, toggle open/close)
-6. Delete project with confirmation
-7. Grid layout (responsive 1/2/3 columns)
-8. All API calls include x-user-id header
-
-API CALLS PATTERN:
-```typescript
-const userId = localStorage.getItem('userId');
-const headers = {
-  'Content-Type': 'application/json',
-  'x-user-id': userId || '',
-};
-```
-
-COMPLETE CODE STRUCTURE:
-```typescript
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -311,10 +248,4 @@ export default function ProjectsPage() {
     </div>
   );
 }
-```
 
-OUTPUT RULES:
-- OUTPUT CODE ONLY
-- NO markdown
-- NO triple backticks
-- Valid TypeScript/TSX only

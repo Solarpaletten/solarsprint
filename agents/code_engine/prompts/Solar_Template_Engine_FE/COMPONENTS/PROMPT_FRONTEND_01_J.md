@@ -1,42 +1,21 @@
 // PROMPT_FRONTEND_01_J.md
-// PURPOSE: Implement reusable Input component with label and error state
-// VERSION: 1.0
+// PURPOSE: Implement reusable Input component with password visibility toggle
+// VERSION: 2.0 — Added eye icon for password fields
 
 ROLE: SENIOR FRONTEND ENGINEER
 
 PROJECT CONTEXT:
 Project: Solar Sprint
-Stack:
-- Next.js 14 (App Router)
-- TypeScript (strict mode)
-- React 18
-- Tailwind CSS (utility classes only)
+Stack: Next.js 14, TypeScript, React 18, Tailwind CSS
 
-PROJECT STRUCTURE:
-components/
-├── ui/
-│   ├── Button.tsx
-│   ├── Input.tsx       ← THIS FILE
-│   └── Card.tsx
-└── forms/
-    └── AuthForm.tsx
-
-GITKEEPER RULES (MANDATORY):
-- Domain: task management system
-- Keep components minimal and reusable
-- Do NOT add input masking
-- Do NOT add complex validation
-- Use only Tailwind CSS
-
-TARGET FILE:
-components/ui/Input.tsx
+TARGET FILE: components/ui/Input.tsx
 
 TASK:
-Implement reusable Input component with label, error message, and various input types.
+Create a reusable Input component with label, error handling, and password visibility toggle.
 
-REQUIRED TYPE DEFINITIONS (MUST BE INCLUDED IN OUTPUT):
+REQUIRED TYPE DEFINITIONS:
 ```typescript
-type InputProps = {
+export type InputProps = {
   id: string;
   label: string;
   type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url';
@@ -50,37 +29,36 @@ type InputProps = {
   className?: string;
 };
 ```
-IMPORTANT: This type MUST be defined and exported from the file!
 
 FUNCTIONAL REQUIREMENTS:
+1. 'use client' directive (uses useState for password visibility)
+2. Import useState from react
+3. Label with optional required asterisk (*)
+4. Input field with Tailwind styling
+5. Error message display (red text below input)
+6. Disabled state styling
+7. **PASSWORD VISIBILITY TOGGLE:**
+   - Show eye icon button ONLY for type="password"
+   - Click toggles between password/text
+   - Icon: 👁️ (show) / 👁️‍🗨️ (hide) — use emoji for simplicity
+   - Button positioned inside input on the right
 
-1. Component type:
-   - Client Component ('use client' directive)
-   - Functional component with props
-   - Controlled input (value + onChange)
+STYLING:
+- Container: w-full
+- Label: block text-sm font-medium text-gray-700 mb-1
+- Input wrapper: relative (for eye icon positioning)
+- Input: w-full px-4 py-3 border rounded-lg transition-colors focus:outline-none
+- Normal border: border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent
+- Error border: border-red-500 focus:ring-2 focus:ring-red-500
+- Disabled: opacity-50 cursor-not-allowed bg-gray-50
+- Eye button: absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700
+- When password field: add pr-12 to input for eye icon space
 
-2. Structure:
-   - Label above input
-   - Input field
-   - Error message below (conditional)
-
-3. States:
-   - Default: gray border
-   - Focus: blue ring
-   - Error: red border, red error text
-   - Disabled: opacity-50, cursor-not-allowed
-
-4. Styling (Tailwind classes):
-   - Wrapper: w-full
-   - Label: block, text-sm, font-medium, text-gray-700, mb-1
-   - Input: w-full, px-4, py-3, border, rounded-lg, transition-colors
-   - Input default: border-gray-300, focus:ring-2, focus:ring-blue-500, focus:border-transparent
-   - Input error: border-red-500, focus:ring-red-500
-   - Error text: text-red-600, text-sm, mt-1
-
-COMPLETE CODE STRUCTURE (FOLLOW THIS EXACTLY):
+COMPLETE CODE STRUCTURE:
 ```typescript
 'use client';
+
+import { useState } from 'react';
 
 export type InputProps = {
   id: string;
@@ -109,10 +87,16 @@ export function Input({
   autoComplete,
   className = '',
 }: InputProps) {
-  const baseInputStyles = 'w-full px-4 py-3 border rounded-lg transition-colors focus:outline-none focus:ring-2 focus:border-transparent';
-  const normalStyles = 'border-gray-300 focus:ring-blue-500';
-  const errorStyles = 'border-red-500 focus:ring-red-500';
+  const [showPassword, setShowPassword] = useState(false);
+  
+  const isPassword = type === 'password';
+  const inputType = isPassword && showPassword ? 'text' : type;
+
+  const baseInputStyles = 'w-full px-4 py-3 border rounded-lg transition-colors focus:outline-none';
+  const normalStyles = 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+  const errorStyles = 'border-red-500 focus:ring-2 focus:ring-red-500';
   const disabledStyles = disabled ? 'opacity-50 cursor-not-allowed bg-gray-50' : '';
+  const passwordPadding = isPassword ? 'pr-12' : '';
 
   return (
     <div className={`w-full ${className}`}>
@@ -120,20 +104,33 @@ export function Input({
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
-      
-      <input
-        id={id}
-        name={id}
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        required={required}
-        disabled={disabled}
-        autoComplete={autoComplete}
-        className={`${baseInputStyles} ${error ? errorStyles : normalStyles} ${disabledStyles}`}
-      />
-      
+
+      <div className="relative">
+        <input
+          id={id}
+          name={id}
+          type={inputType}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          required={required}
+          disabled={disabled}
+          autoComplete={autoComplete}
+          className={`${baseInputStyles} ${error ? errorStyles : normalStyles} ${disabledStyles} ${passwordPadding}`}
+        />
+
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+            tabIndex={-1}
+          >
+            {showPassword ? '👁️‍🗨️' : '👁️'}
+          </button>
+        )}
+      </div>
+
       {error && (
         <p className="text-red-600 text-sm mt-1">{error}</p>
       )}
@@ -144,24 +141,8 @@ export function Input({
 export default Input;
 ```
 
-TECHNICAL CONSTRAINTS:
-- MUST have 'use client' directive
-- Use TypeScript strict mode
-- Use Tailwind CSS utility classes only
-- Export type for external use
-- Export component as named export AND default export
-- Use controlled input pattern
-- Show required indicator (*) when required=true
-
 OUTPUT RULES:
 - OUTPUT CODE ONLY
 - NO markdown
-- NO explanations
-- NO comments outside code
 - NO triple backticks
-- Valid TypeScript/TSX
-- MUST include 'use client' directive
-- MUST export types
-
-OUTPUT FORMAT:
-<complete components/ui/Input.tsx source code only>
+- Valid TypeScript/TSX only

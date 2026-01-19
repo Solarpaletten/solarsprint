@@ -23,7 +23,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('tenantId');
     router.push('/login');
   };
 

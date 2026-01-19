@@ -16,12 +16,12 @@ type LoginState = {
 
 export default function LoginPage() {
   const router = useRouter();
-  
+
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
   });
-  
+
   const [state, setState] = useState<LoginState>({
     isLoading: false,
     error: null,
@@ -44,6 +44,10 @@ export default function LoginPage() {
         throw new Error(data.error || 'Login failed');
       }
 
+      // CRITICAL: Save auth data to localStorage
+      localStorage.setItem('userId', data.id);
+      localStorage.setItem('tenantId', data.tenantId);
+
       router.push('/dashboard');
     } catch (error) {
       setState({
@@ -57,9 +61,11 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 px-4">
       <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
         <h1 className="text-2xl font-bold text-gray-900 text-center mb-6">Sign in to Solar Sprint</h1>
+
         {state.error && (
           <p className="text-red-600 text-sm text-center mb-4">{state.error}</p>
         )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -73,6 +79,7 @@ export default function LoginPage() {
               placeholder="you@example.com"
             />
           </div>
+
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <input
@@ -85,6 +92,7 @@ export default function LoginPage() {
               placeholder="••••••••"
             />
           </div>
+
           <button
             type="submit"
             disabled={state.isLoading}
@@ -93,6 +101,7 @@ export default function LoginPage() {
             {state.isLoading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+
         <p className="mt-6 text-center text-sm text-gray-600">
           Don't have an account?{' '}
           <Link href="/signup" className="text-blue-600 hover:underline font-medium">Sign up</Link>

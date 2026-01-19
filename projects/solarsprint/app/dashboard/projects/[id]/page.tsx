@@ -1,60 +1,3 @@
-// PROMPT_FRONTEND_01_H.md
-// PURPOSE: Implement Project Detail Page with authenticated API calls
-// VERSION: 2.0 — Fixed: send x-user-id header for authentication
-
-ROLE: SENIOR FRONTEND ENGINEER
-
-PROJECT CONTEXT:
-Project: Solar Sprint
-Stack: Next.js 14 (App Router), TypeScript, React 18, Tailwind CSS
-
-TARGET FILE: app/dashboard/projects/[id]/page.tsx
-
-NOTE: This file is in app/dashboard/projects/[id]/ (NOT app/(dashboard)/projects/[id]/)
-
-AUTHENTICATION:
-All API calls MUST include x-user-id header from localStorage!
-
-REQUIRED TYPE DEFINITIONS:
-```typescript
-type Project = {
-  id: string;
-  name: string;
-  description: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type PageState = {
-  project: Project | null;
-  isLoading: boolean;
-  error: string | null;
-};
-
-type EditFormState = {
-  isEditing: boolean;
-  name: string;
-  description: string;
-  isSubmitting: boolean;
-  error: string | null;
-};
-```
-
-FUNCTIONAL REQUIREMENTS:
-1. 'use client' directive
-2. Import useState, useEffect from 'react'
-3. Import useRouter, useParams from 'next/navigation'
-4. Import Link from 'next/link'
-5. useParams() to get project id
-6. Fetch project on mount with x-user-id header
-7. View mode: display project + Edit/Delete buttons
-8. Edit mode: inline form with PATCH
-9. Delete: confirm → DELETE → redirect
-10. Breadcrumb navigation
-11. All API calls include x-user-id header
-
-COMPLETE CODE STRUCTURE:
-```typescript
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -329,10 +272,4 @@ export default function ProjectDetailPage() {
     </div>
   );
 }
-```
 
-OUTPUT RULES:
-- OUTPUT CODE ONLY
-- NO markdown
-- NO triple backticks
-- Valid TypeScript/TSX only
