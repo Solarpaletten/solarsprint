@@ -26,3 +26,5 @@ Auth Model (MVP)
 Documentation
 - ARCHITECTURE.md — system design
 - CHANGELOG.md — releases
+
+add text.txt
